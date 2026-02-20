@@ -1,15 +1,15 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseExcel } from '../utils/excelParser.js';
+import excelParser from '../utils/excelParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function runCppOptimizer(demandBuffer, supplyBuffer) {
   // 1. Parse Excel files
-  const employees = parseExcel(demandBuffer);
-  const vehicles = parseExcel(supplyBuffer);
+  const employees = excelParser(demandBuffer);
+  const vehicles = excelParser(supplyBuffer);
 
   // 2. Build input data
   const inputData = {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer, { memoryStorage } from 'multer';
 // FIX: Add .js extension
-import { runCppOptimizer } from '../controllers/optimise.controller.js';
+import runCppOptimizer from '../controllers/optimise.controller.js';
 
 const router = Router();
 const upload = multer({ storage: memoryStorage() });

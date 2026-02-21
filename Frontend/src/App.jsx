@@ -33,7 +33,7 @@ function App() {
       formData.append('supplyFile', preparedFiles.supply, 'supply.xlsx');
 
       // 2. Send to Backend
-      const response = await fetch('http://localhost:5000/api/optimize', {
+      const response = await fetch('http://localhost:5000/api/optimise', {
         method: 'POST',
         body: formData, // Browser sets Content-Type to multipart/form-data automatically
       });

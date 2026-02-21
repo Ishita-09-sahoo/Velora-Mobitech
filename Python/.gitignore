@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.env/
+
+# Build / executable output
+build/
+dist/
+*.exe
+
+# Uploads (important for your case)
+uploads/
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db

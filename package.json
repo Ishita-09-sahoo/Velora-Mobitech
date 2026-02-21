@@ -22,5 +22,10 @@
   "description": "",
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "axios": "^1.13.5",
+    "form-data": "^4.0.5",
+    "multer": "^2.0.2"
   }
 }

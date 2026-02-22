@@ -5,33 +5,23 @@ import FileUpload from "./components/FileUpload";
 import MapView from "./components/MapView";
 
 function App() {
-  const [preparedFiles, setPreparedFiles] = useState(null); // { demand: Blob, supply: Blob }
+  const [file, setFile] = useState(null);
   const [isOptimized, setIsOptimized] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Called when FileUpload successfully splits the master file
-  const handleFilesReady = (files) => {
-    setPreparedFiles(files);
-    setIsOptimized(false);
-    setResults(null);
-  };
+
 
   const handleRunOptimization = async () => {
-    if (!preparedFiles) {
-      return alert("Please upload the Master Excel file first!");
-    }
+    if (!file) {
+  return alert("Please upload file first!");
+}
 
     setLoading(true);
 
     try {
-      // 1. Construct FormData with the virtual files
-      const formData = new FormData();
-      // 'demandFile' matches upload.fields([{ name: 'demandFile' }]) in backend
-      formData.append('demandFile', preparedFiles.demand, 'demand.xlsx'); 
-      // 'supplyFile' matches upload.fields([{ name: 'supplyFile' }]) in backend
-      formData.append('supplyFile', preparedFiles.supply, 'supply.xlsx');
-
+     const formData = new FormData();
+formData.append("file", file);
       // 2. Send to Backend
       const response = await fetch('http://localhost:5000/api/optimise', {
         method: 'POST',
@@ -120,7 +110,7 @@ function App() {
         <div className="input-group">
           <h3>Input Data</h3>
           <div className="inner-div">
-            <FileUpload onFilesReady={handleFilesReady} />
+       <FileUpload onFileSelect={setFile} />
           </div>
         </div>
 

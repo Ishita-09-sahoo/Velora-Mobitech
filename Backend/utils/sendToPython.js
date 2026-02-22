@@ -1,4 +1,4 @@
-import { post } from "axios";
+import axios from "axios";
 import FormData from "form-data";
 import { createReadStream } from "fs";
 
@@ -11,7 +11,7 @@ const sendToPython = async (filePath) => {
         createReadStream(filePath)
     );
 
-    const response = await post(
+    const response = await axios.post(
 
         "http://127.0.0.1:8000/optimise",
 

@@ -4,7 +4,6 @@ from distance import build_distance_matrix
 from optimizer import Optimizer
 from output_formatter import build_output
 
-
 def run_optimisation(FILE):
 
     employees, vehicles, baseline, meta, max_delay = load_data(FILE)

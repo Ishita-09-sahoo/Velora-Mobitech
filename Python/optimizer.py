@@ -47,6 +47,25 @@ class Optimizer:
 
         return True, t
 
+    #------helper----
+
+    def route_arrival_time(self, v, route):
+        ok, t = self.simulate(v, route)
+        return t if ok else None
+
+    def compute_slack(self, v, route):
+        arrival = self.route_arrival_time(v, route)
+        if arrival is None:
+            return None
+
+        slack = {}
+        for node in route:
+            emp = node - self.V
+            slack[node] = self.allowed_deadline[emp] - arrival
+        return slack
+
+    #--------main solver
+
     def run(self):
 
         nodes = list(range(self.V, self.V + self.E))
@@ -71,6 +90,74 @@ class Optimizer:
                 _, v, pos = best
                 self.routes[v].insert(pos, x)
 
+        # ====================
+        # Repair phase (swap)
+        # ====================
+
+        assigned = {n for r in self.routes for n in r}
+        unassigned = [n for n in nodes if n not in assigned]
+
+        for x in unassigned:
+
+            repaired = False
+            candidates = []
+
+            for v in range(self.V):
+
+                if not self.routes[v]:
+                    continue
+
+                slack_info = self.compute_slack(v, self.routes[v])
+                if slack_info is None:
+                    continue
+
+                for node in self.routes[v]:
+                    emp = node - self.V
+                    candidates.append(
+                        (node, v, slack_info[node], self.priority[emp])
+                    )
+
+            candidates.sort(key=lambda x: (-x[2], x[3]))
+
+            for y_node, y_vehicle, _, _ in candidates:
+
+                temp_route = self.routes[y_vehicle].copy()
+                temp_route.remove(y_node)
+
+                for pos in range(len(temp_route) + 1):
+
+                    trial = temp_route[:pos] + [x] + temp_route[pos:]
+                    ok, _ = self.simulate(y_vehicle, trial)
+
+                    if not ok:
+                        continue
+
+                    for v2 in range(self.V):
+
+                        if len(self.routes[v2]) >= self.vehicles.loc[v2, "capacity"]:
+                            continue
+
+                        for pos2 in range(len(self.routes[v2]) + 1):
+
+                            trial2 = self.routes[v2][:pos2] + \
+                                [y_node] + self.routes[v2][pos2:]
+
+                            ok2, _ = self.simulate(v2, trial2)
+
+                            if ok2:
+                                self.routes[y_vehicle] = trial
+                                self.routes[v2] = trial2
+                                repaired = True
+                                break
+
+                        if repaired:
+                            break
+                    if repaired:
+                        break
+                if repaired:
+                    break
+
+
         # Force assign soft
         assigned = {n for r in self.routes for n in r}
         remaining = [n for n in nodes if n not in assigned]
@@ -90,7 +177,8 @@ class Optimizer:
                     emp = x - self.V
                     lateness = max(0, t - self.allowed_deadline[emp])
 
-                    if best is None or lateness < best[0]:
+                    if best is None or lateness < best[0] or \
+                       (lateness == best[0] and t < best[1]):
                         best = (lateness, t, v, pos)
 
             if best:

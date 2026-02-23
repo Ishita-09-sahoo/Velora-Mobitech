@@ -48,47 +48,37 @@ function App() {
   };
 
   const mapBackendDataToFrontend = (backendData) => {
-    const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
+  const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
-    return {
-      // Metrics
-      baselineCost: backendData.metrics.baseline_cost,
-      optimizedCost: backendData.metrics.total_operational_cost,
-      savingsAbs: backendData.metrics.savings_absolute,
-      savingsPct: backendData.metrics.savings_percent,
-      baselineTime: "N/A",
-      optimizedTime: backendData.metrics.total_travel_time_mins,
+  return {
+    baselineCost: 0,
+    optimizedCost: backendData.vehicles.reduce((sum, v) => sum + v.cost, 0),
+    savingsAbs: 0,
+    savingsPct: 0,
+    baselineTime: "N/A",
+    optimizedTime: "N/A",
 
-      // Vehicle Assignments
-      assignments: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        type: "Fleet Vehicle",
-        color: colors[index % colors.length],
-        capacity: v.assigned_users.length + " Assigned",
-        routeDesc: `${v.total_distance_km} km Route`,
+    assignments: backendData.vehicles.map((v, index) => ({
+      id: v.vehicle_id,
+      type: "Fleet Vehicle",
+      color: colors[index % colors.length],
+      capacity: `${v.route.length} stops`,
+      routeDesc: `${v.distance_km} km Route`,
 
-        // Stops (Timeline)
-        stops: v.route_nodes.map((node, i) => ({
-          time:
-            i === 0 ? "Start" : i === v.route_nodes.length - 1 ? "End" : "Stop",
-          loc:
-            node.type === "pickup"
-              ? `Pickup User ${node.user_id}`
-              : node.type === "drop"
-                ? `Drop User ${node.user_id}`
-                : "Waypoint",
-          type: node.type || "waypoint",
-        })),
+      stops: v.route.map((empId, i) => ({
+        time: i === 0 ? "Start" : "Stop",
+        loc: `Employee ${empId}`,
+        type: "pickup",
       })),
+    })),
 
-      // Map Routes
-      routes: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        color: colors[index % colors.length],
-        path: v.polyline_coords, // [lat, lng] arrays
-      })),
-    };
+    routes: backendData.vehicles.map((v, index) => ({
+      id: v.vehicle_id,
+      color: colors[index % colors.length],
+      path: [], // map polyline not available yet
+    })),
   };
+};
 
   return (
     <div className="dashboard-container">

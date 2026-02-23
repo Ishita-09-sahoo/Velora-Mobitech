@@ -29,6 +29,7 @@ def run_optimisation(FILE):
         routes,
         employees,
         vehicles,
+        baseline,
         dist,
         vehicles["avg_speed_kmph"].values,
         len(vehicle_coords) + len(pickup_coords)

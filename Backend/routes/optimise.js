@@ -1,5 +1,3 @@
-// routes/optimise.js
-
 import { Router } from "express";
 import multer from "multer";
 

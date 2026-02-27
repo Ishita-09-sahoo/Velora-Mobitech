@@ -52,9 +52,9 @@ function App() {
     const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
     return {
-      baselineCost: 0,
-      optimizedCost: backendData.vehicles.reduce((sum, v) => sum + v.cost, 0),
-      savingsPct: 0,
+      baselineCost: backendData.total_baseline_cost,
+      optimizedCost: backendData.total_optimized_cost,
+      savingsPct: backendData.savings_percent,
       savingsAbs: 0,
       baselineTime: "N/A",
       optimizedTime: "N/A",
@@ -68,7 +68,7 @@ function App() {
 
         stops: v.route.map((empId, i) => ({
           time: i === 0 ? "Start" : "Stop",
-          loc: `Employee ${empId}`,
+          loc: `Employee ${empId.employee_id}`,
           type: "pickup",
         })),
       })),

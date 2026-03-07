@@ -20,10 +20,12 @@ function App() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      // 2. Send to Backend
-      const response = await fetch("http://localhost:5000/api/optimise", {
+
+      const API_URL = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API_URL}/api/optimise`, {
         method: "POST",
-        body: formData, // Browser sets Content-Type to multipart/form-data automatically
+        body: formData,
       });
 
       if (!response.ok) {
@@ -33,7 +35,6 @@ function App() {
 
       const data = await response.json();
       console.log("Optimization response:", data);
-
 
       // 3. Map Backend Data to Frontend Format
       const mappedResults = mapBackendDataToFrontend(data);
@@ -48,37 +49,37 @@ function App() {
   };
 
   const mapBackendDataToFrontend = (backendData) => {
-  const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
+    const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
-  return {
-    baselineCost: 0,
-    optimizedCost: backendData.vehicles.reduce((sum, v) => sum + v.cost, 0),
-    savingsAbs: 0,
-    savingsPct: 0,
-    baselineTime: "N/A",
-    optimizedTime: "N/A",
+    return {
+      baselineCost: backendData.total_baseline_cost,
+      optimizedCost: backendData.total_optimized_cost,
+      savingsPct: backendData.savings_percent,
+      savingsAbs: 0,
+      baselineTime: "N/A",
+      optimizedTime: "N/A",
 
-    assignments: backendData.vehicles.map((v, index) => ({
-      id: v.vehicle_id,
-      type: "Fleet Vehicle",
-      color: colors[index % colors.length],
-      capacity: `${v.route.length} stops`,
-      routeDesc: `${v.distance_km} km Route`,
+      assignments: backendData.vehicles.map((v, index) => ({
+        id: v.vehicle_id,
+        type: "Fleet Vehicle",
+        color: colors[index % colors.length],
+        capacity: `${v.route.length} stops`,
+        routeDesc: `${v.distance_km} km Route`,
 
-      stops: v.route.map((empId, i) => ({
-        time: i === 0 ? "Start" : "Stop",
-        loc: `Employee ${empId}`,
-        type: "pickup",
+        stops: v.route.map((empId, i) => ({
+          time: i === 0 ? "Start" : "Stop",
+          loc: `Employee ${empId.employee_id}`,
+          type: "pickup",
+        })),
       })),
-    })),
 
-    routes: backendData.vehicles.map((v, index) => ({
-      id: v.vehicle_id,
-      color: colors[index % colors.length],
-      path: [], // map polyline not available yet
-    })),
+      routes: backendData.vehicles.map((v, index) => ({
+        id: v.vehicle_id,
+        color: colors[index % colors.length],
+        path: [], // map polyline not available yet
+      })),
+    };
   };
-};
 
   return (
     <div className="dashboard-container">

@@ -28,7 +28,15 @@ def build_output(routes, employees, vehicles, baseline, dist, speed, factory_idx
         total_dist = 0
 
         route_details = []
+        route_points = []
         pickup_times = {}
+
+        route_points.append({
+            "type": "vehicle_start",
+            "label": f"Vehicle {vehicles.loc[v, 'vehicle_id']}",
+            "lat": float(vehicles.loc[v, "current_lat"]),
+            "lng": float(vehicles.loc[v, "current_lng"])
+        })
 
         # -------- pickup sequence --------
 
@@ -68,12 +76,25 @@ def build_output(routes, employees, vehicles, baseline, dist, speed, factory_idx
                 "employee_id": emp_id,
                 "pickup_time": minutes_to_hhmm(pickup_time)
             })
+            route_points.append({
+                "type": "pickup",
+                "label": f"Employee {emp_id}",
+                "lat": float(employees.loc[emp, "pickup_lat"]),
+                "lng": float(employees.loc[emp, "pickup_lng"])
+            })
+
             prev = node
 
         # -------- go to factory --------
 
         t += dist[prev][factory_idx] / speed[v] * 60
         factory_time = t
+        route_points.append({
+            "type": "factory",
+            "label": "Factory",
+            "lat": float(employees.loc[0, "drop_lat"]),
+            "lng": float(employees.loc[0, "drop_lng"])
+        })
 
         # -------- enrich employee rows --------
 
@@ -98,6 +119,7 @@ def build_output(routes, employees, vehicles, baseline, dist, speed, factory_idx
         vehicle_rows.append({
             "vehicle_id": vehicles.loc[v, "vehicle_id"],
             "route": route_details,
+            "route_points": route_points,
             "drop_time": minutes_to_hhmm(factory_time),
             "distance_km": round(total_dist, 2),
             "cost": vehicle_cost

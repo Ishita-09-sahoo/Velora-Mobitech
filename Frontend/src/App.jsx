@@ -74,11 +74,11 @@ function App() {
         })),
       })),
 
-      routes: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        color: colors[index % colors.length],
-        path: [], // map polyline not available yet
-      })),
+   routes: backendData.vehicles.map((v, index) => ({
+  id: v.vehicle_id,
+  color: colors[index % colors.length],
+  path: v.route_points.map(p => [p.lat, p.lng])
+})),
     };
   };
 

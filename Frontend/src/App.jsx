@@ -9,6 +9,8 @@ function App() {
   const [isOptimized, setIsOptimized] = useState(false);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showEmployeeTable, setShowEmployeeTable] = useState(false);
+
 
   const handleRunOptimization = async () => {
     if (!file) {
@@ -56,8 +58,7 @@ function App() {
       optimizedCost: backendData.total_optimized_cost,
       savingsPct: backendData.savings_percent,
       savingsAbs: 0,
-      baselineTime: "N/A",
-      optimizedTime: "N/A",
+      employees: backendData.employees || [],
 
       assignments: backendData.vehicles.map((v, index) => ({
         id: v.vehicle_id,
@@ -73,11 +74,11 @@ function App() {
         })),
       })),
 
-      routes: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        color: colors[index % colors.length],
-        path: [], // map polyline not available yet
-      })),
+   routes: backendData.vehicles.map((v, index) => ({
+  id: v.vehicle_id,
+  color: colors[index % colors.length],
+  path: v.route_points.map(p => [p.lat, p.lng])
+})),
     };
   };
 
@@ -98,12 +99,7 @@ function App() {
               <div className="header-stat savings-text">
                 Save: {results.savingsPct}%
               </div>
-            </div>
-            <div className="stat-group time-group">
-              <div className="header-stat highlight-time">
-                Time: {results.optimizedTime}m
-              </div>
-            </div>
+            </div> 
           </div>
         )}
       </header>
@@ -132,6 +128,17 @@ function App() {
                 ? "Re-Run Optimization"
                 : "Run Optimization"}
           </button>
+            
+          {isOptimized && results && (
+            <button
+              className="employee-btn"
+              onClick={() => setShowEmployeeTable(true)}
+            >
+              Employee Assignment
+            </button>
+          )}
+
+        
         </div>
       </aside>
 
@@ -171,6 +178,63 @@ function App() {
             ))}
           </div>
         </aside>
+      )}
+    
+      {showEmployeeTable && results && (
+        <div className="employee-modal-overlay">
+          <div className="employee-modal">
+            <div className="employee-modal-header">
+              <h2>Employees Assignment</h2>
+              <button
+                className="close-modal-btn"
+                onClick={() => setShowEmployeeTable(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="employee-table-wrapper">
+              <table className="employee-table">
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>Vehicle ID</th>
+                    <th>Priority</th>
+                    <th>Earliest Pickup</th>
+                    <th>Latest Drop</th>
+                    <th>Pickup Time</th>
+                    <th>Drop Time</th>
+                    <th>Time Taken (min)</th>
+                    <th>Baseline Time (min)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.employees.length > 0 ? (
+                    results.employees.map((emp, index) => (
+                      <tr key={`${emp.employee_id}-${index}`}>
+                        <td>{emp.employee_id}</td>
+                        <td>{emp.vehicle_id}</td>
+                        <td>{emp.priority}</td>
+                        <td>{emp.earliest_pickup}</td>
+                        <td>{emp.latest_drop}</td>
+                        <td>{emp.pickup_time}</td>
+                        <td>{emp.drop_time}</td>
+                        <td>{emp.time_taken_min}</td>
+                        <td>{emp.baseline_time_min}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className="no-data-cell">
+                        No employee assignment data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

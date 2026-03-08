@@ -12,6 +12,10 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ];
 
+app.get("/", (req, res) => {
+  res.send("Node backend running");
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {

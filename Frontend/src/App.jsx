@@ -10,9 +10,17 @@ function App() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showEmployeeTable, setShowEmployeeTable] = useState(false);
-const [showPreferenceTable, setShowPreferenceTable] = useState(false);
+  const [showPreferenceTable, setShowPreferenceTable] = useState(false);
+  const [lastRun, setLastRun] = useState(0);
 
   const handleRunOptimization = async () => {
+    const now = Date.now();
+    if (now - lastRun < 10000) {
+      alert("Please wait a few seconds before running again.");
+      return;
+    }
+    setLastRun(now);
+
     if (!file) {
       return alert("Please upload file first!");
     }
@@ -60,37 +68,35 @@ const [showPreferenceTable, setShowPreferenceTable] = useState(false);
       savingsAbs: 0,
       employees: backendData.employees || [],
 
- assignments: backendData.vehicles.map((v, index) => ({
+      assignments: backendData.vehicles.map((v, index) => ({
+        id: v.vehicle_id,
+        type: "Fleet Vehicle",
+        color: colors[index % colors.length],
+        capacity: `${v.route.length} stops`,
+        routeDesc: `${v.distance_km} km Route`,
 
-  id: v.vehicle_id,
-  type: "Fleet Vehicle",
-  color: colors[index % colors.length],
-  capacity: `${v.route.length} stops`,
-  routeDesc: `${v.distance_km} km Route`,
+        stops: [
+          ...v.route.map((emp, i) => ({
+            time: emp.pickup_time,
+            loc: `Employee ${emp.employee_id}`,
+            type: "pickup",
+          })),
 
-  stops: [
-    ...v.route.map((emp, i) => ({
-      time: emp.pickup_time,
-      loc: `Employee ${emp.employee_id}`,
-      type: "pickup"
-    })),
+          // add factory drop
+          {
+            time: v.drop_time,
+            loc: "Factory Drop",
+            type: "factory",
+          },
+        ],
+      })),
 
-    // add factory drop
-    {
-      time: v.drop_time,
-      loc: "Factory Drop",
-      type: "factory"
-    }
-  ]
-
-})),
-
-routes: backendData.vehicles.map((v, index) => ({
-  id: v.vehicle_id,
-  color: colors[index % colors.length],
-  path: v.route_points.map(p => [p.lat, p.lng]),
-  points: v.route_points
-})),
+      routes: backendData.vehicles.map((v, index) => ({
+        id: v.vehicle_id,
+        color: colors[index % colors.length],
+        path: v.route_points.map((p) => [p.lat, p.lng]),
+        points: v.route_points,
+      })),
     };
   };
 
@@ -111,7 +117,7 @@ routes: backendData.vehicles.map((v, index) => ({
               <div className="header-stat savings-text">
                 Save: {results.savingsPct}%
               </div>
-            </div> 
+            </div>
           </div>
         )}
       </header>
@@ -140,7 +146,7 @@ routes: backendData.vehicles.map((v, index) => ({
                 ? "Re-Run Optimization"
                 : "Run Optimization"}
           </button>
-            
+
           {isOptimized && results && (
             <button
               className="employee-btn"
@@ -149,15 +155,14 @@ routes: backendData.vehicles.map((v, index) => ({
               Employee Assignment
             </button>
           )}
-{isOptimized && results && (
-  <button
-    className="employee-btn"
-    onClick={() => setShowPreferenceTable(true)}
-  >
-    Preference Table
-  </button>
-)}
-        
+          {isOptimized && results && (
+            <button
+              className="employee-btn"
+              onClick={() => setShowPreferenceTable(true)}
+            >
+              Preference Table
+            </button>
+          )}
         </div>
       </aside>
 
@@ -198,7 +203,7 @@ routes: backendData.vehicles.map((v, index) => ({
           </div>
         </aside>
       )}
-    
+
       {showEmployeeTable && results && (
         <div className="employee-modal-overlay">
           <div className="employee-modal">
@@ -256,73 +261,71 @@ routes: backendData.vehicles.map((v, index) => ({
         </div>
       )}
       {showPreferenceTable && results && (
-  <div className="employee-modal-overlay">
-    <div className="employee-modal">
+        <div className="employee-modal-overlay">
+          <div className="employee-modal">
+            <div className="employee-modal-header">
+              <h2>Employee Preference Table</h2>
+              <button
+                className="close-modal-btn"
+                onClick={() => setShowPreferenceTable(false)}
+              >
+                ×
+              </button>
+            </div>
 
-      <div className="employee-modal-header">
-        <h2>Employee Preference Table</h2>
-        <button
-          className="close-modal-btn"
-          onClick={() => setShowPreferenceTable(false)}
-        >
-          ×
-        </button>
-      </div>
+            <div className="employee-table-wrapper">
+              <table className="employee-table">
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>Vehicle Preference</th>
+                    <th>Sharing Preference</th>
+                    <th>Assigned Vehicle</th>
+                    <th>Actual Sharing</th>
+                    <th>Vehicle Pref OK</th>
+                    <th>Sharing Pref OK</th>
+                    <th>Baseline Cost</th>
+                    <th>Baseline Time</th>
+                    <th>Optimized Cost</th>
+                    <th>Cost Saving</th>
+                  </tr>
+                </thead>
 
-      <div className="employee-table-wrapper">
-        <table className="employee-table">
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Vehicle Preference</th>
-              <th>Sharing Preference</th>
-              <th>Assigned Vehicle</th>
-              <th>Actual Sharing</th>
-              <th>Vehicle Pref OK</th>
-              <th>Sharing Pref OK</th>
-              <th>Baseline Cost</th>
-              <th>Baseline Time</th>
-              <th>Optimized Cost</th>
-              <th>Cost Saving</th>
-            </tr>
-          </thead>
+                <tbody>
+                  {results.employees.map((emp, index) => (
+                    <tr key={index}>
+                      <td
+                        style={{
+                          backgroundColor: emp.is_infeasible
+                            ? "red"
+                            : "transparent",
+                          color: emp.is_infeasible ? "white" : "inherit",
+                          fontWeight: emp.is_infeasible ? "bold" : "normal",
+                        }}
+                      >
+                        {emp.employee_id}
+                      </td>
+                      <td>{emp.vehicle_preference}</td>
+                      <td>{emp.sharing_preference}</td>
+                      <td>{emp.assigned_vehicle_type}</td>
+                      <td>{emp.actual_sharing}</td>
 
-          <tbody>
-            {results.employees.map((emp, index) => (
-              <tr key={index}>
-               <td
-  style={{
-    backgroundColor: emp.is_infeasible ? "red" : "transparent",
-    color: emp.is_infeasible ? "white" : "inherit",
-    fontWeight: emp.is_infeasible ? "bold" : "normal"
-  }}
->{emp.employee_id}</td>
-                <td>{emp.vehicle_preference}</td>
-                <td>{emp.sharing_preference}</td>
-                <td>{emp.assigned_vehicle_type}</td>
-                <td>{emp.actual_sharing}</td>
+                      <td>{emp.vehicle_preference_satisfied ? "✔️" : "❌"}</td>
 
-                <td>
-                  {emp.vehicle_preference_satisfied ? "✔️" : "❌"}
-                </td>
+                      <td>{emp.sharing_preference_satisfied ? "✔️" : "❌"}</td>
 
-                <td>
-                  {emp.sharing_preference_satisfied ? "✔️" : "❌"}
-                </td>
-
-                <td>₹{emp.baseline_cost}</td>
-                <td>{emp.baseline_time_min}</td>
-                <td>₹{emp.optimized_cost_share}</td>
-                <td>₹{emp.cost_saving}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-  </div>
-)}
+                      <td>₹{emp.baseline_cost}</td>
+                      <td>{emp.baseline_time_min}</td>
+                      <td>₹{emp.optimized_cost_share}</td>
+                      <td>₹{emp.cost_saving}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

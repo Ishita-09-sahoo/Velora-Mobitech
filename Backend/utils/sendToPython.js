@@ -13,6 +13,7 @@ const sendToPython = async (filePath) => {
     formData,
     {
       headers: formData.getHeaders(),
+      timeout: 600000
     },
   );
 

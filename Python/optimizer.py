@@ -128,20 +128,7 @@ class Optimizer:
         return best_route
 
     def greedy_insert(self, nodes, hard_sharing=True, hard_vehicle=True):
-        """
-        Try to insert each node into the best feasible slot.
-
-        hard_sharing=True  → strictly reject slots that violate sharing preference
-        hard_sharing=False → allow sharing violations, penalise lightly in score
-
-        hard_vehicle=True  → strictly reject slots that violate vehicle preference
-        hard_vehicle=False → allow vehicle violations, penalise lightly in score
-
-        Both flags are True in Pass 1 so high-priority employees grab
-        compliant slots first. Both are False in Pass 2 (last resort).
-
-        Returns list of nodes that could not be assigned.
-        """
+      
         unassigned = []
 
         for x in nodes:
@@ -240,16 +227,13 @@ class Optimizer:
         nodes = self.cluster_employee_nodes()
 
         # -------------------------------------------------------
-        # PASS 1 — greedy with HARD sharing constraint
-        # High-priority / tight-deadline employees (ordered by
-        # clustering + deadline sort) grab slots first.
-        # -------------------------------------------------------
+        # PASS 1 — greedy with HARD sharing constraints
+       # -------------------------------------------------------
         unassigned_after_greedy = self.greedy_insert(
             nodes, hard_sharing=True, hard_vehicle=True)
 
         # -------------------------------------------------------
         # Repair phase — swap to find room for unassigned nodes
-        # (same logic as before, still respects hard sharing)
         # -------------------------------------------------------
         still_unassigned = []
 
@@ -321,8 +305,6 @@ class Optimizer:
 
         # -------------------------------------------------------
         # PASS 2 — relaxed greedy for employees who genuinely
-        # could not be assigned without a sharing violation.
-        # Process in priority order (best priority first).
         # -------------------------------------------------------
         still_unassigned.sort(key=lambda x: self.priority[x - self.V])
 
@@ -332,7 +314,6 @@ class Optimizer:
 
         # -------------------------------------------------------
         # Last resort soft-force for anything still remaining
-        # (e.g. TC04 E10 which is genuinely infeasible on time)
         # -------------------------------------------------------
         truly_unassigned.sort(key=lambda x: self.priority[x - self.V])
 

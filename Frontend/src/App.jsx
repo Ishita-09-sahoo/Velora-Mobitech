@@ -154,7 +154,7 @@ routes: backendData.vehicles.map((v, index) => ({
     className="employee-btn"
     onClick={() => setShowPreferenceTable(true)}
   >
-    Preference Table
+    Cost BreakDown
   </button>
 )}
         
@@ -260,7 +260,7 @@ routes: backendData.vehicles.map((v, index) => ({
     <div className="employee-modal">
 
       <div className="employee-modal-header">
-        <h2>Employee Preference Table</h2>
+        <h2>Employee Preferences and Cost Comparison </h2>
         <button
           className="close-modal-btn"
           onClick={() => setShowPreferenceTable(false)}
@@ -292,9 +292,9 @@ routes: backendData.vehicles.map((v, index) => ({
               <tr key={index}>
                <td
   style={{
-    backgroundColor: emp.is_infeasible ? "red" : "transparent",
-    color: emp.is_infeasible ? "white" : "inherit",
-    fontWeight: emp.is_infeasible ? "bold" : "normal"
+   
+   color: emp.is_infeasible ? "#f62b2b" : "inherit",
+  fontWeight: emp.is_infeasible ? "bold" : "normal"
   }}
 >{emp.employee_id}</td>
                 <td>{emp.vehicle_preference}</td>

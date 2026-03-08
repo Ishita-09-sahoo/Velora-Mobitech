@@ -350,6 +350,66 @@
   color: #cbd5e1;
   padding: 24px;
 }
+
+/*map*/
+.map-section {
+  position: relative;
+  height: 100%;
+  min-height: 500px;
+  padding: 14px;
+}
+
+.map-shell {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  background: #e5eef7;
+}
+
+.custom-map {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background: #dbeafe;
+}
+
+.custom-map .leaflet-tile-container img {
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18) !important;
+}
+
+.leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: none !important;
+}
+
+.vehicle-icon,
+.employee-icon,
+.factory-icon {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  text-align: center;
+  line-height: 1;
+}
+
+.leaflet-tooltip {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
 /* Animations */
 @keyframes slideIn {
   from {

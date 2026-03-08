@@ -10,7 +10,7 @@ function App() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showEmployeeTable, setShowEmployeeTable] = useState(false);
-
+const [showPreferenceTable, setShowPreferenceTable] = useState(false);
 
   const handleRunOptimization = async () => {
     if (!file) {
@@ -60,24 +60,36 @@ function App() {
       savingsAbs: 0,
       employees: backendData.employees || [],
 
-      assignments: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        type: "Fleet Vehicle",
-        color: colors[index % colors.length],
-        capacity: `${v.route.length} stops`,
-        routeDesc: `${v.distance_km} km Route`,
+ assignments: backendData.vehicles.map((v, index) => ({
 
-        stops: v.route.map((empId, i) => ({
-          time: i === 0 ? "Start" : "Stop",
-          loc: `Employee ${empId.employee_id}`,
-          type: "pickup",
-        })),
-      })),
+  id: v.vehicle_id,
+  type: "Fleet Vehicle",
+  color: colors[index % colors.length],
+  capacity: `${v.route.length} stops`,
+  routeDesc: `${v.distance_km} km Route`,
 
-   routes: backendData.vehicles.map((v, index) => ({
+  stops: [
+    ...v.route.map((emp, i) => ({
+      time: emp.pickup_time,
+      loc: `Employee ${emp.employee_id}`,
+      type: "pickup"
+    })),
+
+    // add factory drop
+    {
+      time: v.drop_time,
+      loc: "Factory Drop",
+      type: "factory"
+    }
+  ]
+
+})),
+
+routes: backendData.vehicles.map((v, index) => ({
   id: v.vehicle_id,
   color: colors[index % colors.length],
-  path: v.route_points.map(p => [p.lat, p.lng])
+  path: v.route_points.map(p => [p.lat, p.lng]),
+  points: v.route_points
 })),
     };
   };
@@ -137,7 +149,14 @@ function App() {
               Employee Assignment
             </button>
           )}
-
+{isOptimized && results && (
+  <button
+    className="employee-btn"
+    onClick={() => setShowPreferenceTable(true)}
+  >
+    Preference Table
+  </button>
+)}
         
         </div>
       </aside>
@@ -236,6 +255,74 @@ function App() {
           </div>
         </div>
       )}
+      {showPreferenceTable && results && (
+  <div className="employee-modal-overlay">
+    <div className="employee-modal">
+
+      <div className="employee-modal-header">
+        <h2>Employee Preference Table</h2>
+        <button
+          className="close-modal-btn"
+          onClick={() => setShowPreferenceTable(false)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="employee-table-wrapper">
+        <table className="employee-table">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Vehicle Preference</th>
+              <th>Sharing Preference</th>
+              <th>Assigned Vehicle</th>
+              <th>Actual Sharing</th>
+              <th>Vehicle Pref OK</th>
+              <th>Sharing Pref OK</th>
+              <th>Baseline Cost</th>
+              <th>Baseline Time</th>
+              <th>Optimized Cost</th>
+              <th>Cost Saving</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {results.employees.map((emp, index) => (
+              <tr key={index}>
+               <td
+  style={{
+    backgroundColor: emp.is_infeasible ? "red" : "transparent",
+    color: emp.is_infeasible ? "white" : "inherit",
+    fontWeight: emp.is_infeasible ? "bold" : "normal"
+  }}
+>{emp.employee_id}</td>
+                <td>{emp.vehicle_preference}</td>
+                <td>{emp.sharing_preference}</td>
+                <td>{emp.assigned_vehicle_type}</td>
+                <td>{emp.actual_sharing}</td>
+
+                <td>
+                  {emp.vehicle_preference_satisfied ? "✔️" : "❌"}
+                </td>
+
+                <td>
+                  {emp.sharing_preference_satisfied ? "✔️" : "❌"}
+                </td>
+
+                <td>₹{emp.baseline_cost}</td>
+                <td>{emp.baseline_time_min}</td>
+                <td>₹{emp.optimized_cost_share}</td>
+                <td>₹{emp.cost_saving}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }

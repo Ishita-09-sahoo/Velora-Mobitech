@@ -155,14 +155,15 @@ function App() {
               Employee Assignment
             </button>
           )}
-          {isOptimized && results && (
-            <button
-              className="employee-btn"
-              onClick={() => setShowPreferenceTable(true)}
-            >
-              Preference Table
-            </button>
-          )}
+{isOptimized && results && (
+  <button
+    className="employee-btn"
+    onClick={() => setShowPreferenceTable(true)}
+  >
+    Cost BreakDown
+  </button>
+)}
+        
         </div>
       </aside>
 
@@ -261,17 +262,18 @@ function App() {
         </div>
       )}
       {showPreferenceTable && results && (
-        <div className="employee-modal-overlay">
-          <div className="employee-modal">
-            <div className="employee-modal-header">
-              <h2>Employee Preference Table</h2>
-              <button
-                className="close-modal-btn"
-                onClick={() => setShowPreferenceTable(false)}
-              >
-                ×
-              </button>
-            </div>
+  <div className="employee-modal-overlay">
+    <div className="employee-modal">
+
+      <div className="employee-modal-header">
+        <h2>Employee Preferences and Cost Comparison </h2>
+        <button
+          className="close-modal-btn"
+          onClick={() => setShowPreferenceTable(false)}
+        >
+          ×
+        </button>
+      </div>
 
             <div className="employee-table-wrapper">
               <table className="employee-table">
@@ -291,24 +293,20 @@ function App() {
                   </tr>
                 </thead>
 
-                <tbody>
-                  {results.employees.map((emp, index) => (
-                    <tr key={index}>
-                      <td
-                        style={{
-                          backgroundColor: emp.is_infeasible
-                            ? "red"
-                            : "transparent",
-                          color: emp.is_infeasible ? "white" : "inherit",
-                          fontWeight: emp.is_infeasible ? "bold" : "normal",
-                        }}
-                      >
-                        {emp.employee_id}
-                      </td>
-                      <td>{emp.vehicle_preference}</td>
-                      <td>{emp.sharing_preference}</td>
-                      <td>{emp.assigned_vehicle_type}</td>
-                      <td>{emp.actual_sharing}</td>
+          <tbody>
+            {results.employees.map((emp, index) => (
+              <tr key={index}>
+               <td
+  style={{
+   
+   color: emp.is_infeasible ? "#f62b2b" : "inherit",
+  fontWeight: emp.is_infeasible ? "bold" : "normal"
+  }}
+>{emp.employee_id}</td>
+                <td>{emp.vehicle_preference}</td>
+                <td>{emp.sharing_preference}</td>
+                <td>{emp.assigned_vehicle_type}</td>
+                <td>{emp.actual_sharing}</td>
 
                       <td>{emp.vehicle_preference_satisfied ? "✔️" : "❌"}</td>
 

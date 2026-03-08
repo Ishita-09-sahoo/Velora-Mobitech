@@ -4,12 +4,14 @@ from distance import build_distance_matrix
 from optimizer import Optimizer
 from output_formatter import build_output
 
+
 def run_optimisation(FILE):
 
     employees, vehicles, baseline, meta, max_delay = load_data(FILE)
 
     pickup_coords = list(zip(employees["pickup_lat"], employees["pickup_lng"]))
-    vehicle_coords = list(zip(vehicles["current_lat"], vehicles["current_lng"]))
+    vehicle_coords = list(
+        zip(vehicles["current_lat"], vehicles["current_lng"]))
     factory_coord = (
         employees.loc[0, "drop_lat"],
         employees.loc[0, "drop_lng"]
@@ -21,7 +23,10 @@ def run_optimisation(FILE):
         factory_coord
     )
 
-    opt = Optimizer(employees, vehicles, dist, max_delay)
+    cost_weight = float(meta["objective_cost_weight"])
+    time_weight = float(meta["objective_time_weight"])
+    opt = Optimizer(employees, vehicles, dist,
+                    max_delay, cost_weight, time_weight)
 
     routes = opt.run()
 
@@ -32,7 +37,8 @@ def run_optimisation(FILE):
         baseline,
         dist,
         vehicles["avg_speed_kmph"].values,
-        len(vehicle_coords) + len(pickup_coords)
+        len(vehicle_coords) + len(pickup_coords),
+        max_delay
     )
 
     return result

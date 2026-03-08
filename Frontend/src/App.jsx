@@ -60,24 +60,36 @@ function App() {
       savingsAbs: 0,
       employees: backendData.employees || [],
 
-      assignments: backendData.vehicles.map((v, index) => ({
-        id: v.vehicle_id,
-        type: "Fleet Vehicle",
-        color: colors[index % colors.length],
-        capacity: `${v.route.length} stops`,
-        routeDesc: `${v.distance_km} km Route`,
+ assignments: backendData.vehicles.map((v, index) => ({
 
-        stops: v.route.map((empId, i) => ({
-          time: i === 0 ? "Start" : "Stop",
-          loc: `Employee ${empId.employee_id}`,
-          type: "pickup",
-        })),
-      })),
+  id: v.vehicle_id,
+  type: "Fleet Vehicle",
+  color: colors[index % colors.length],
+  capacity: `${v.route.length} stops`,
+  routeDesc: `${v.distance_km} km Route`,
 
-   routes: backendData.vehicles.map((v, index) => ({
+  stops: [
+    ...v.route.map((emp, i) => ({
+      time: emp.pickup_time,
+      loc: `Employee ${emp.employee_id}`,
+      type: "pickup"
+    })),
+
+    // add factory drop
+    {
+      time: v.drop_time,
+      loc: "Factory Drop",
+      type: "factory"
+    }
+  ]
+
+})),
+
+routes: backendData.vehicles.map((v, index) => ({
   id: v.vehicle_id,
   color: colors[index % colors.length],
-  path: v.route_points.map(p => [p.lat, p.lng])
+  path: v.route_points.map(p => [p.lat, p.lng]),
+  points: v.route_points
 })),
     };
   };

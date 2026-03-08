@@ -1,80 +1,162 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useState, useEffect } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  Tooltip,
+  useMap
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Fix for missing default Leaflet markers in React
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+// ---------- ICONS ----------
 
-let DefaultIcon = L.icon({
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
+const vehicleIcon = new L.DivIcon({
+  html: "🚗",
+  className: "vehicle-icon",
+  iconSize: [40, 40]
 });
-L.Marker.prototype.options.icon = DefaultIcon;
+
+const employeeIcon = new L.DivIcon({
+  html: "📍",
+  className: "employee-icon",
+  iconSize: [30, 30]
+});
+
+const factoryIcon = new L.DivIcon({
+  html: "🏭",
+  className: "factory-icon",
+  iconSize: [35, 35]
+});
+
+// ---------- AUTO ZOOM COMPONENT ----------
+
+function AutoZoom({ route }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!route || route.path.length === 0) return;
+
+    const bounds = L.latLngBounds(route.path);
+    map.fitBounds(bounds, { padding: [60, 60] });
+
+  }, [route, map]);
+
+  return null;
+}
+
+// ---------- MAIN MAP ----------
 
 function MapView({ routes, isOptimized }) {
-  // Center on Bangalore (or adjust to your city)
+
+  const [activeRoute, setActiveRoute] = useState(null);
+
   const defaultCenter = [12.9716, 77.5946];
 
+  const selectedRoute =
+    routes && routes.find(r => r.id === activeRoute);
+
   return (
-    <MapContainer 
-      center={defaultCenter} 
-      zoom={12} 
-      className="leaflet-container" 
-      style={{ height: '100%', width: '100%', background: '#0f172a' }}
+    <MapContainer
+      center={defaultCenter}
+      zoom={12}
+      style={{ height: "100%", width: "100%", background: "#0f172a" }}
     >
-      {/* Dark Mode Map Tiles */}
+
+      {/* MAP TILE */}
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        className="map-tiles"
       />
 
-      {/* RENDER OPTIMIZED ROUTES */}
-      {isOptimized && routes && routes.map((route, idx) => (
-        <React.Fragment key={route.id || idx}>
-          {/* 1. The Route Path */}
-          <Polyline 
-            positions={route.path} 
-            pathOptions={{ 
-              color: route.color, 
-              weight: 4, 
-              opacity: 0.8,
-              dashArray: '10, 10' // Makes it look technical/planned
-            }}
-          />
-          
-          {/* 2. Start Marker (Vehicle Origin) */}
-          {route.path.length > 0 && (
-             <Marker position={route.path[0]}>
-               <Popup>
-                 <strong>{route.id}</strong><br/>
-                 Start Location
-               </Popup>
-             </Marker>
-          )}
+      {/* AUTO ZOOM */}
+      {selectedRoute && <AutoZoom route={selectedRoute} />}
 
-          {/* 3. End Marker (Office/Destination) */}
-          {route.path.length > 0 && (
-             <Marker position={route.path[route.path.length - 1]}>
-               <Popup>
-                 Destination<br/>
-                 (Route End)
-               </Popup>
-             </Marker>
-          )}
-        </React.Fragment>
-      ))}
+      {/* ROUTES */}
+      {isOptimized &&
+        routes &&
+        routes.map((route, idx) => {
 
-      {/* Fallback if no routes yet (show center marker) */}
+          const isActive = activeRoute === route.id;
+
+          return (
+            <React.Fragment key={route.id || idx}>
+
+              {/* ROUTE LINE */}
+              <Polyline
+                positions={route.path}
+                pathOptions={{
+                  color: route.color,
+                  weight: isActive ? 7 : 4,
+                  opacity: isActive ? 1 : 0.35
+                }}
+                eventHandlers={{
+                  click: () => setActiveRoute(route.id)
+                }}
+              />
+
+              {/* SHOW MARKERS ONLY FOR ACTIVE ROUTE */}
+              {isActive &&
+                route.points &&
+                route.points.map((p, i) => {
+
+                  if (p.type === "vehicle_start") {
+                    return (
+                      <Marker
+                        key={i}
+                        position={[p.lat, p.lng]}
+                        icon={vehicleIcon}
+                      >
+                        <Tooltip permanent direction="top">
+                          🚗 {route.id}
+                        </Tooltip>
+                      </Marker>
+                    );
+                  }
+
+                  if (p.type === "pickup") {
+
+                    const empId = p.label.replace("Employee ", "");
+
+                    return (
+                      <Marker
+                        key={i}
+                        position={[p.lat, p.lng]}
+                        icon={employeeIcon}
+                      >
+                        <Tooltip permanent direction="top">
+                          {empId}
+                        </Tooltip>
+                      </Marker>
+                    );
+                  }
+
+                  if (p.type === "factory") {
+                    return (
+                      <Marker
+                        key={i}
+                        position={[p.lat, p.lng]}
+                        icon={factoryIcon}
+                      >
+                        <Tooltip permanent direction="top">
+                          🏭 Factory
+                        </Tooltip>
+                      </Marker>
+                    );
+                  }
+
+                  return null;
+                })}
+            </React.Fragment>
+          );
+        })}
+
+      {/* DEFAULT MARKER BEFORE OPTIMIZATION */}
       {!isOptimized && (
         <Marker position={defaultCenter}>
-          <Popup>Velora HQ Area</Popup>
+          <Tooltip permanent>Velora HQ</Tooltip>
         </Marker>
       )}
-
     </MapContainer>
   );
 }

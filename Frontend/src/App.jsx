@@ -74,10 +74,11 @@ function App() {
         })),
       })),
 
-   routes: backendData.vehicles.map((v, index) => ({
+routes: backendData.vehicles.map((v, index) => ({
   id: v.vehicle_id,
   color: colors[index % colors.length],
-  path: v.route_points.map(p => [p.lat, p.lng])
+  path: v.route_points.map(p => [p.lat, p.lng]),
+  points: v.route_points
 })),
     };
   };
